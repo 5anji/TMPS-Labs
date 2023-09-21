@@ -1,3 +1,4 @@
+#include "fleet.h"
 #include "refrigerated_trailer.h"
 #include "trailer.h"
 #include "truck.h"
@@ -6,7 +7,6 @@
 #include <fmt/format.h>
 #include <iostream>
 #include <string>
-#include <vector>
 
 /// @brief
 /// Single Responsibility Principle (SRP): Each class should have a single responsibility.
@@ -26,7 +26,7 @@
 ///     We are not explicitly using dependency injection here, but the base class abstraction allows for future flexibility.
 
 int main() {
-    std::vector<Vehicle*> fleet;
+    FleetManager fleet_manager;
 
     Truck kamaz("KAMAZ 4310", false);
     Trailer trailer1("Sovetskii");
@@ -37,17 +37,11 @@ int main() {
     scania.attach(std::make_unique<RefrigeratedTrailer>(trailer2));
     kamaz.attach(std::make_unique<RefrigeratedTrailer>(trailer2));
 
-    fleet.push_back(&kamaz);
-    fleet.push_back(&trailer1);
-    fleet.push_back(&scania);
-    fleet.push_back(&trailer2);
+    fleet_manager.add_vehicle(&kamaz);
+    fleet_manager.add_vehicle(&trailer1);
+    fleet_manager.add_vehicle(&scania);
+    fleet_manager.add_vehicle(&trailer2);
 
-    for (const auto& vehicle : fleet) {
-        vehicle->start();
-    }
-    fmt::println("");
-    for (const auto& vehicle : fleet) {
-        vehicle->stop();
-    }
+    fleet_manager.operate_fleet();
     return 0;
 }

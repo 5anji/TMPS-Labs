@@ -71,17 +71,27 @@ protected:
 __Dependency Inversion Principle (DIP):__ it is used by injecting constructor into child classes. There is how I used it:
 
 ```c++
-Trailer::Trailer(const std::string& name)
-        : Vehicle(name) {}
-        // ^^^ here
-void Trailer::start() {
-        fmt::println("Trailer {} is starting.", name);
-}
-void Trailer::stop() {
-    if (started)
-        fmt::println("Trailer {} is stopping.", name);
-    started = false;
-}
+class FleetManager {
+public:
+    FleetManager() {}
+
+    void add_vehicle(Vehicle* vehicle) {
+        fleet.push_back(vehicle);
+    }
+
+    void operate_fleet() {
+        for (const auto& vehicle : fleet) {
+            vehicle->start();
+        }
+        fmt::println("");
+        for (const auto& vehicle : fleet) {
+            vehicle->stop();
+        }
+    }
+
+private:
+    std::vector<Vehicle*> fleet;
+};
 ```
 
 It's called inside initializer list as is suggetested by C++ conventions.
