@@ -68,7 +68,7 @@ protected:
 };
 ```
 
-__Dependency Inversion Principle (DIP):__ it is used by injecting constructor into child classes. There is how I used it:
+__Dependency Inversion Principle (DIP):__ is inside this class:
 
 ```c++
 class FleetManager {
@@ -94,7 +94,7 @@ private:
 };
 ```
 
-It's called inside initializer list as is suggetested by C++ conventions.
+As you can see the fleet_manager can be written without any child classes such as Truck or Trailer. Using common interface permits to show this principle in use.
 
 ## Conclusion
 
