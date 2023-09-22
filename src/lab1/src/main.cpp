@@ -26,7 +26,6 @@
 ///     We are not explicitly using dependency injection here, but the base class abstraction allows for future flexibility.
 
 int main() {
-    FleetManager fleet_manager;
 
     Truck kamaz("KAMAZ 4310", false);
     Trailer trailer1("Sovetskii");
@@ -37,8 +36,7 @@ int main() {
     scania.attach(std::make_unique<RefrigeratedTrailer>(trailer2));
     kamaz.attach(std::make_unique<RefrigeratedTrailer>(trailer2));
 
-    fleet_manager.add_vehicle(&kamaz);
-    fleet_manager.add_vehicle(&trailer1);
+    FleetManager fleet_manager({&kamaz, &trailer1});
     fleet_manager.add_vehicle(&scania);
     fleet_manager.add_vehicle(&trailer2);
 

@@ -9,6 +9,9 @@ class FleetManager {
 public:
     FleetManager() {}
 
+    FleetManager(std::vector<Vehicle*> const& fleet)
+            : fleet(fleet) {}
+
     void add_vehicle(Vehicle* vehicle) {
         fleet.push_back(vehicle);
     }
