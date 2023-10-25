@@ -1,4 +1,4 @@
-# Topic: *Creational Design Patterns*
+# Topic: *Structural Design Patterns*
 
 ## Author: *Gitlan Gabriel, FAF-213*
 
@@ -6,113 +6,117 @@
 
 ## Objectives
 
-&ensp; &ensp; __1. Study and understand the Creational Design Patterns.__
+&ensp; &ensp; __1. Study and understand the Structural Design Patterns.__
 
-&ensp; &ensp; __2. Choose a domain, define its main classes/models/entities and choose the appropriate instantiation mechanisms.__
+&ensp; &ensp; __2. As a continuation of the previous laboratory work, think about the functionalities that your system will need to provide to the user.__
 
-&ensp; &ensp; __3. Use some creational design patterns for object instantiation in a sample project.__
+&ensp; &ensp; __3. Implement some additional functionalities, or create a new project using structural design patterns.__
 
 ## Some Theory
 
-&ensp; &ensp; Creational design patterns are a category of design patterns that focus on the process of object creation. They provide a way to create objects in a flexible and controlled manner, while decoupling the client code from the specifics of object creation. Creational design patterns address common problems encountered in object creation, such as how to create objects with different initialization parameters, how to create objects based on certain conditions, or how to ensure that only a single instance of an object is created. There are several creational design patterns that have their own strengths and weaknesses. Each of it is best suited for solving specific problems related to object creation. By using creational design patterns, developers can improve the flexibility, maintainability, and scalability of their code.
+&ensp; &ensp; Structural design patterns are a category of design patterns that focus on the composition of classes and objects to form larger structures and systems. They provide a way to organize objects and classes in a way that is both flexible and efficient, while allowing for the reuse and modification of existing code. Structural design patterns address common problems encountered in the composition of classes and objects, such as how to create new objects that inherit functionality from existing objects, how to create objects that share functionality without duplicating code, or how to define relationships between objects in a flexible and extensible way.
 
-&ensp; &ensp; Some examples of this kind of design patterns are:
+&ensp; &ensp; Some examples of from this category of design patterns are:
 
-* Singleton
-* Builder
-* Prototype
-* Object Pooling
-* Factory Method
-* Abstract Factory
+* Adapter
+* Bridge
+* Composite
+* Decorator
+* Facade
+* Flyweight
+* Proxy
 
 ## Implementation
 
-In this lab I tried to implement Singleton, Builder, Prototype and Factory design patterns into a single C++ program. The theme is also about trucks and trailers, but the functionality remains very primitive, to maintain the visibility of the patterns. So:
+In this lab I tried to implement Adapter, Bridge, Composite and Decorator design patterns into a single C++ program. The theme is also about trucks and trailers, but the functionality remains very primitive, to maintain the visibility of the patterns. So:
 
-Singleton and Factory patterns are implemented inside this class:
+Adapter pattern is implemented inside this class:
 
 ```c++
-class TruckFactory {
+class TruckWithTrailer : public Truck {
 public:
-    TruckFactory() {}
-    static std::unique_ptr<TruckFactory> get_instance() {
-        if (!instance) {
-            instance = std::make_unique<TruckFactory>();
-        }
-        return std::move(instance);
-    }
+    TruckWithTrailer(std::shared_ptr<Truck> truck, std::shared_ptr<Trailer> trailer)
+            : truck(std::move(truck))
+            , trailer(std::move(trailer)) {}
 
-    std::unique_ptr<Truck> create_truck() {
-        return std::make_unique<ConcreteTruck>();
+    void deliver() const override {
+        truck->deliver();
+        trailer->attach();
+        fmt::println("Delivering goods with a Truck and Trailer");
     }
 
 private:
-    static std::unique_ptr<TruckFactory> instance;
-};
-
-std::unique_ptr<TruckFactory> TruckFactory::instance = nullptr;
-```
-
-The Prototype pattern I decided to include in this class (very primitively):
-
-```c++
-class ConcreteTruck : public Truck {
-public:
-    ConcreteTruck() = default;
-
-    void drive() override {
-        fmt::println("Concrete Truck is driving.");
-    }
-
-    std::unique_ptr<Truck> clone() override {
-        return std::make_unique<ConcreteTruck>(*this);
-    }
+    std::shared_ptr<Truck> truck;
+    std::shared_ptr<Trailer> trailer;
 };
 ```
 
-And finally Builder pattern is the following:
+The Bridge pattern I decided to include in this class (very primitively):
 
 ```c++
-class Trailer {
+class TruckPlatform {
 public:
-    virtual void attach() {
-        fmt::println("Trailer is attached.");
-    };
-
-    class Builder {
-    protected:
-        std::string name;
-
-    public:
-        Builder(const std::string& n)
-                : name(n) {}
-
-        virtual std::unique_ptr<Trailer> build() = 0;
-    };
+    virtual void deliver() const = 0;
+    virtual ~TruckPlatform() = default;
 };
 
 ...
 
-class ConcreteTrailer : public Trailer {
+// ConcreteImplementor: SmallTruckPlatform
+class SmallTruckPlatform : public TruckPlatform {
 public:
-    class ConcreteBuilder : public Builder {
-    public:
-        ConcreteBuilder(const std::string& n)
-                : Builder(n) {}
+    void deliver() const override {
+        fmt::println("Delivering goods on a Small Truck Platform");
+    }
+};
 
-        std::unique_ptr<Trailer> build() override {
-            auto trailer = std::make_unique<ConcreteTrailer>();
-            trailer->name = name;
-            return trailer;
+...
+
+// ConcreteImplementor: LargeTruckPlatform
+class LargeTruckPlatform : public TruckPlatform {
+public:
+    void deliver() const override {
+        fmt::println("Delivering goods on a Large Truck Platform");
+    }
+};
+```
+
+Composite pattern is the following:
+
+```c++
+class TruckFleet : public Truck {
+public:
+    void add_truck(std::shared_ptr<Truck> truck) {
+        trucks.push_back(std::move(truck));
+    }
+
+    void deliver() const override {
+        fmt::println("Delivering goods with a Truck Fleet");
+        for (const auto& truck : trucks) {
+            truck->deliver();
         }
-    };
-
-    void attach() override {
-        fmt::println("Concrete Trailer with name {} is attached.", name);
     }
 
 private:
-    std::string name;
+    std::vector<std::shared_ptr<Truck>> trucks;
+};
+```
+
+And the final one. Decorator:
+
+```c++
+class PremiumTruck : public Truck {
+public:
+    PremiumTruck(std::shared_ptr<Truck> truck)
+            : truck(std::move(truck)) {}
+
+    void deliver() const override {
+        truck->deliver();
+        fmt::println("Delivering goods with Premium features");
+    }
+
+private:
+    std::shared_ptr<Truck> truck;
 };
 ```
 
@@ -120,34 +124,89 @@ main():
 
 ```c++
 int main() {
-    // Singleton
-    std::unique_ptr<TruckFactory> factory = TruckFactory::get_instance();
+    // Creating instances of trucks and trailers
+    auto smallTruck = std::make_shared<SmallTruck>();
+    auto largeTruck = std::make_shared<LargeTruck>();
+    auto smallTrailer = std::make_shared<SmallTrailer>();
+    auto largeTrailer = std::make_shared<LargeTrailer>();
 
-    // Factory
-    std::unique_ptr<Truck> truck = factory->create_truck();
-    truck->drive();
+    // Using Adapter to combine Truck and Trailer
+    auto truckWithTrailer = std::make_shared<TruckWithTrailer>(smallTruck, largeTrailer);
 
-    // Prototype
-    std::unique_ptr<Truck> truck_clone = truck->clone();
-    truck_clone->drive();
+    // Using Bridge to provide different Truck platforms
+    auto smallTruckPlatform = std::make_shared<SmallTruckPlatform>();
+    auto largeTruckPlatform = std::make_shared<LargeTruckPlatform>();
+    auto extendedTruck = std::make_shared<ExtendedTruck>(smallTruckPlatform);
 
-    // Builder
-    std::unique_ptr<Trailer::Builder> builder = std::make_unique<ConcreteTrailer::ConcreteBuilder>("Krone");
-    std::unique_ptr<Trailer> trailer = builder->build();
-    trailer->attach();
+    // Using Composite to manage a fleet of trucks
+    auto truckFleet = std::make_shared<TruckFleet>();
+    truckFleet->add_truck(smallTruck);
+    truckFleet->add_truck(largeTruck);
+
+    // Using Decorator to add premium features to a Truck
+    auto premiumTruck = std::make_shared<PremiumTruck>(largeTruck);
+
+    // Delivering goods using various trucks and combinations
+    smallTruck->deliver();
+    largeTruck->deliver();
+    smallTrailer->attach();
+    largeTrailer->attach();
+    truckWithTrailer->deliver();
+    smallTruckPlatform->deliver();
+    largeTruckPlatform->deliver();
+    extendedTruck->deliver();
+    truckFleet->deliver();
+    premiumTruck->deliver();
 
     return 0;
 }
 ```
 
+Output:
+
+```txt
+Delivering goods with a Small Truck
+Delivering goods with a Large Truck
+Attached a Small Trailer
+Attached a Large Trailer
+Delivering goods with a Small Truck
+Attached a Large Trailer
+Delivering goods with a Truck and Trailer
+Delivering goods on a Small Truck Platform
+Delivering goods on a Large Truck Platform
+Delivering goods on a Small Truck Platform
+Delivering goods with an Extended Truck
+Delivering goods with a Truck Fleet
+Delivering goods with a Small Truck
+Delivering goods with a Large Truck
+Delivering goods with a Large Truck
+Delivering goods with Premium features
+```
+
 ## Conclusion
 
-1) __Singleton Pattern__: Ensures that a class has only one instance and provides a global point of access to it. It is useful when exactly one object needs to coordinate actions across the system, like a global configuration or a central point for managing resources.
+1) __Adapter Pattern__:
 
-2) __Factory Pattern__: Defines an interface for creating an object but lets subclasses alter the type of objects that will be created. It is helpful when a class cannot anticipate the type of objects it needs to create or when a class wants to delegate the responsibility of object creation to its subclasses.
+    __Purpose__: The Adapter pattern is used to make two incompatible interfaces work together.
 
-3) __Prototype Pattern__: Creates new objects by copying an existing object, known as the prototype. It is useful when the cost of creating an object is more expensive than copying it, or when objects have many shared characteristics and only a few differences.
+    __Usage in the Program__: The TruckWithTrailer class acts as an adapter, combining a Truck and a Trailer to work together. It adapts the interface of the truck and trailer to deliver goods as a single unit.
 
-4) __Builder Pattern__: Separates the construction of a complex object from its representation, allowing the same construction process to create different representations. It is beneficial when an object needs to be constructed with numerous optional components or configurations, making the creation process more flexible and readable.
+2) __Bridge Pattern__:
 
-Each of these creational design patterns addresses different concerns related to object creation and initialization, providing flexibility, maintainability, and reusability in software design. The choice of which pattern to use depends on the specific requirements and constraints of your application.
+    __Purpose__: The Bridge pattern separates the abstraction from its implementation, allowing both to vary independently.
+
+    __Usage in the Program__: The TruckPlatform hierarchy serves as the bridge between the Truck abstraction and the specific truck platform implementations (SmallTruckPlatform and LargeTruckPlatform). It allows different truck platforms to be used with various trucks.
+
+3) __Composite Pattern__:
+
+    __Purpose__: The Composite pattern lets you compose objects into tree structures to represent part-whole hierarchies. It allows clients to treat individual objects and compositions of objects uniformly.
+
+    __Usage in the Program__: The TruckFleet class acts as a composite, managing a collection of Truck objects. It can be used to treat individual trucks and the entire fleet uniformly for delivering goods.
+
+4) __Decorator Pattern__:
+
+    __Purpose__: The Decorator pattern allows behavior to be added to individual objects, either statically or dynamically, without affecting the behavior of other objects from the same class.
+
+    __Usage in the Program__: The PremiumTruck class acts as a decorator, adding premium features to a Truck. It enhances the behavior of a truck without changing the core Truck class.
+
+In summary, these design patterns are used to improve the structure and flexibility of the vehicle management system. The Adapter pattern adapts two different vehicle types to work together, the Bridge pattern separates the abstraction of trucks from their platforms, the Composite pattern manages a collection of trucks as a single unit, and the Decorator pattern adds premium features to vehicles without altering their base functionality. These patterns collectively enhance the program's design and maintainability.
